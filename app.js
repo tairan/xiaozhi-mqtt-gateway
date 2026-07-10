@@ -1185,20 +1185,6 @@ app.post('/api/call/accept', authenticateRequest, (req, res) => {
     }
 });
 
-// 计算并打印当天的临时密钥
-function calculateAndPrintDailyToken() {
-    try {
-        // 调用共享的辅助函数计算令牌
-        const dailyToken = calculateDailyToken();
-
-        // 打印令牌信息
-        console.log('API今日临时密钥: Authorization: Bearer ' + dailyToken);
-        return dailyToken;
-    } catch (error) {
-        console.error('计算临时密钥失败:', error);
-    }
-}
-
 // 验证MQTT_SIGNATURE_KEY的密码复杂度
 function validateSignatureKeyComplexity() {
     const signatureKey = process.env.MQTT_SIGNATURE_KEY;
@@ -1242,7 +1228,5 @@ function validateSignatureKeyComplexity() {
 if (validateSignatureKeyComplexity()) {
     app.listen(adminPort, adminHost, () => {
         console.log(`管理API服务启动在 ${adminHost}:${adminPort}`);
-        // 计算并打印当天的临时密钥
-        calculateAndPrintDailyToken();
     });
 }

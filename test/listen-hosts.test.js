@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 const { resolveListenHosts } = require('../utils/listen-hosts');
 
@@ -26,4 +28,10 @@ test('supports independent TCP, UDP, and management API bind addresses', () => {
 
 test('UDP inherits the MQTT bind address when it is not configured', () => {
     assert.equal(resolveListenHosts({ MQTT_HOST: '127.0.0.1' }).udp, '127.0.0.1');
+});
+
+test('application source never logs the derived daily bearer token', () => {
+    const source = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+    assert.doesNotMatch(source, /Authorization: Bearer.*dailyToken/);
+    assert.doesNotMatch(source, /API今日临时密钥/);
 });
