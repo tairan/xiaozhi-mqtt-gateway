@@ -4,7 +4,8 @@
   "description": "一个简单的 MQTT 服务器实现，支持 QoS 0",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "node --test"
   },
   "dependencies": {
     "debug": "^4.3.4",

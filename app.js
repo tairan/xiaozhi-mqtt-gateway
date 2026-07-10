@@ -14,6 +14,7 @@ const { MQTTProtocol } = require('./mqtt-protocol');
 const { ConfigManager } = require('./utils/config-manager');
 const { CallManager } = require('./utils/call-manager');
 const { validateMqttCredentials } = require('./utils/mqtt_config_v2');
+const { resolveListenHosts } = require('./utils/listen-hosts');
 
 
 function setDebugEnabled(enabled) {
@@ -687,6 +688,9 @@ class MQTTConnection {
 
 class MQTTServer {
     constructor() {
+        const listenHosts = resolveListenHosts(process.env);
+        this.mqttHost = listenHosts.mqtt;
+        this.udpHost = listenHosts.udp;
         this.mqttPort = parseInt(process.env.MQTT_PORT) || 1883;
         this.udpPort = parseInt(process.env.UDP_PORT) || this.mqttPort;
         this.publicIp = process.env.PUBLIC_IP || 'mqtt.xiaozhi.me';
@@ -718,8 +722,8 @@ class MQTTServer {
             new MQTTConnection(socket, connectionId, this);
         });
 
-        this.mqttServer.listen(this.mqttPort, () => {
-            console.warn(`MQTT 服务器正在监听端口 ${this.mqttPort}`);
+        this.mqttServer.listen(this.mqttPort, this.mqttHost, () => {
+            console.warn(`MQTT 服务器正在监听 ${this.mqttHost}:${this.mqttPort}`);
         });
 
 
@@ -729,8 +733,8 @@ class MQTTServer {
             console.error('UDP 错误', err);
             setTimeout(() => { process.exit(1); }, 1000);
         });
-        this.udpServer.bind(this.udpPort, () => {
-            console.warn(`UDP 服务器正在监听 ${this.publicIp}:${this.udpPort}`);
+        this.udpServer.bind(this.udpPort, this.udpHost, () => {
+            console.warn(`UDP 服务器正在监听 ${this.udpHost}:${this.udpPort}，对外地址 ${this.publicIp}`);
         });
 
         // 启动全局心跳检查定时器
@@ -942,6 +946,7 @@ process.on('SIGINT', () => {
 const express = require('express');
 const app = express();
 const adminPort = process.env.API_PORT || 8007;
+const adminHost = resolveListenHosts(process.env).api;
 
 app.use(express.json());
 
@@ -1235,8 +1240,8 @@ function validateSignatureKeyComplexity() {
 
 // 启动管理API服务
 if (validateSignatureKeyComplexity()) {
-    app.listen(adminPort, () => {
-        console.log(`管理API服务启动在端口 ${adminPort}`);
+    app.listen(adminPort, adminHost, () => {
+        console.log(`管理API服务启动在 ${adminHost}:${adminPort}`);
         // 计算并打印当天的临时密钥
         calculateAndPrintDailyToken();
     });
